@@ -1,55 +1,78 @@
-# Se solicita el número de mediciones al usuario
+import random
+
+# ============================================================
+# PROCESADOR DE REGISTROS DE SENSOR
+# ============================================================
+# Este programa lee mediciones de un sensor y las interpreta.
+# El formato en que están codificados los registros depende del
+# último dígito de la cédula: par o impar.
+# Como no tenemos la cédula real, se elige al azar (0 o 1).
+# ============================================================
+
+# Simulamos el último dígito de la cédula (0 = par, 1 = impar)
+CEDULA_ULTIMO_DIGITO = random.choice([0, 1])
+
+# ── PASO 1: Leer cuántas mediciones vamos a procesar ──────────
 n = input()
 
-# Verificamos que el valor ingresado sea un número entero positivo
+# Validamos que sea un número entero positivo.
+# .isdigit() devuelve True solo si todos los caracteres son dígitos (0-9).
 if not n.isdigit() or int(n) <= 0:
     print("Error: numero de mediciones invalido")
 else:
-    # Convertimos el valor a entero, ya que pasó la validación
-    n = int(n)
-    
-    # Se solicita el nombre del sensor
+    n = int(n)  # Convertimos el texto a número ahora que sabemos que es válido
+
+    # ── PASO 2: Leer el nombre/identificador del sensor ───────
     sensor = input()
 
-    # Lista donde se guardarán los registros ingresados
-    registros = []
-
-    # Se leen n registros del usuario
-    for _ in range(n):
+    # ── PASO 3: Leer los n registros uno por uno ──────────────
+    registros = []  # Lista vacía donde guardaremos cada registro leído
+    for _ in range(n):  # El guión bajo "_" es convención cuando no usamos el índice
         r = input()
 
-        # Cada registro debe ser un número de 4 dígitos
-        # isdigit() verifica que todos los caracteres sean dígitos
-        # len(r) == 4 asegura que tenga exactamente 4 dígitos
+        # Cada registro debe ser exactamente 4 dígitos.
+        # Si no cumple, avisamos y terminamos el programa con exit().
         if not r.isdigit() or len(r) != 4:
             print("Error: registro invalido")
-            exit()  # Sale del programa si hay un registro inválido
+            exit()
 
-        # Se agrega el registro válido a la lista
-        registros.append(r)
+        registros.append(r)  # Guardamos el registro válido en la lista
 
-    # Se imprime el nombre del sensor
+    # ── PASO 4: Mostrar el nombre del sensor ──────────────────
     print(f"Sensor: {sensor}")
 
-    # Lista donde se guardarán los valores extraídos de cada registro
-    valores = []
+    # ── PASO 5: Interpretar cada registro según la cédula ─────
+    # Cada registro es una cadena de 4 caracteres (dígitos).
+    # La posición de cada campo (valor, sensor_id, tipo) dentro
+    # de esos 4 caracteres cambia según si la cédula es par o impar.
 
-    # Se procesan los registros uno por uno
-    for r in registros:
-        # El primer dígito indica el tipo de sensor
-        tipo = int(r[0])
-        
-        # Los dígitos 1 y 2 (índices 1:3) indican el valor del registro
-        valor = int(r[1:3])
-        
-        # El último dígito indica el ID del sensor
-        sensor_id = int(r[3])
+    valores = []  # Aquí guardaremos solo los "valores" para calcular el máximo al final
 
-        # Se imprime el registro desglosado
-        print(f"SensorID {sensor_id} Tipo {tipo} Valor {valor}")
-        
-        # Se guarda el valor en la lista de valores
-        valores.append(valor)
+    if CEDULA_ULTIMO_DIGITO % 2 == 0:
+        # ── Formato PAR: los 4 dígitos se leen así ────────────
+        # Posición: [ 0 ][ 1 ][ 2 ][ 3 ]
+        # Campo:    [  valor  ][sid][tipo]
+        # Ejemplo:  "4521" → valor=45, sensorID=2, tipo=1
+        for r in registros:
+            valor     = int(r[0:2])  # Primeros 2 caracteres → valor (ej: "45")
+            sensor_id = int(r[2])    # Tercer carácter       → ID del sensor
+            tipo      = int(r[3])    # Cuarto carácter       → tipo de medición
 
-    # Se imprime el valor máximo entre todos los registros
+            print(f"SensorID {sensor_id} Tipo {tipo} Valor {valor}")
+            valores.append(valor)
+    else:
+        # ── Formato IMPAR: los 4 dígitos se leen así ──────────
+        # Posición: [ 0 ][ 1 ][ 2 ][ 3 ]
+        # Campo:    [tipo][  valor  ][sid]
+        # Ejemplo:  "4521" → tipo=4, valor=52, sensorID=1
+        for r in registros:
+            tipo      = int(r[0])    # Primer carácter        → tipo de medición
+            valor     = int(r[1:3])  # Segundo y tercer car.  → valor (ej: "52")
+            sensor_id = int(r[3])    # Cuarto carácter        → ID del sensor
+
+            print(f"SensorID {sensor_id} Tipo {tipo} Valor {valor}")
+            valores.append(valor)
+
+    # ── PASO 6: Mostrar el valor máximo de todas las mediciones ─
+    # max() recorre la lista y devuelve el número más grande.
     print(f"Valor maximo: {max(valores)}")
